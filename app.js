@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initContactForm();
   initScrollIndicatorDimmer();
   initActiveNavTracker();
+  initRouter();
   initConsoleSignature();
   initKeyboardNavigation();
 });
@@ -563,9 +564,10 @@ function initActiveNavTracker() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const id = entry.target.getAttribute('id');
+        const expectedHref = id === 'home' ? '/' : `/${id}`;
         
         navLinks.forEach(link => {
-          if (link.getAttribute('href') === `#${id}`) {
+          if (link.getAttribute('href') === expectedHref) {
             link.classList.add('active');
           } else {
             link.classList.remove('active');
@@ -646,12 +648,13 @@ function initKeyboardNavigation() {
         const targetElement = document.getElementById(targetId);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: 'smooth' });
-          history.pushState(null, null, `#${targetId}`);
+          const targetPath = targetId === 'home' ? '/' : `/${targetId}`;
+          history.pushState(null, null, targetPath);
           
           // Force highlight active nav link
           const navLinks = document.querySelectorAll('.nav-link');
           navLinks.forEach(link => {
-            if (link.getAttribute('href') === `#${targetId}`) {
+            if (link.getAttribute('href') === targetPath) {
               link.classList.add('active');
             } else {
               link.classList.remove('active');
@@ -699,6 +702,111 @@ function initKeyboardNavigation() {
       dialog.close();
     }
   });
+}
+
+/* ==========================================================================
+   15. CLIENT-SIDE ROUTER FOR CLEAN ROUTE NAVIGATION
+   ========================================================================== */
+function initRouter() {
+  const routes = {
+    '/': 'home',
+    '/about': 'about',
+    '/skills': 'skills',
+    '/services': 'services',
+    '/projects': 'projects',
+    '/process': 'process',
+    '/faq': 'faq',
+    '/contact': 'contact'
+  };
+
+  // Helper to get element id for a pathname
+  function getTargetId(path) {
+    let cleanPath = path;
+    if (cleanPath !== '/' && cleanPath.endsWith('/')) {
+      cleanPath = cleanPath.slice(0, -1);
+    }
+    return routes[cleanPath] || null;
+  }
+
+  // Scroll to section based on pathname
+  function handleRouting(path, isInitial = false) {
+    const targetId = getTargetId(path);
+    
+    if (targetId) {
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        // Scroll to target element
+        if (isInitial) {
+          setTimeout(() => {
+            targetElement.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+        } else {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Update active class on nav links
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+          if (link.getAttribute('href') === path) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+        return true;
+      }
+    } else if (path !== '/' && path !== '/index.html' && path !== '') {
+      // Unknown route - redirect to /404.html to show 404 page
+      if (!path.includes('404.html')) {
+        window.location.replace('/404.html');
+      }
+    }
+    return false;
+  }
+
+  // Intercept click on internal links
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    
+    if (href === '#main-content') {
+      e.preventDefault();
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.scrollIntoView({ behavior: 'smooth' });
+        mainContent.setAttribute('tabindex', '-1');
+        mainContent.focus();
+      }
+      return;
+    }
+
+    // Only handle internal routing links (starts with / or has same origin)
+    if (href && (href.startsWith('/') || href.startsWith(window.location.origin))) {
+      const url = new URL(link.href);
+      const path = url.pathname;
+      
+      const targetId = getTargetId(path);
+      if (targetId) {
+        e.preventDefault();
+        
+        if (window.location.pathname !== path) {
+          history.pushState(null, null, path);
+        }
+        
+        handleRouting(path);
+      }
+    }
+  });
+
+  // Listen to popstate event (back/forward browser buttons)
+  window.addEventListener('popstate', () => {
+    handleRouting(window.location.pathname);
+  });
+
+  // Handle initial route on page load
+  handleRouting(window.location.pathname, true);
 }
 
 
