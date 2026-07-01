@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Redirect // 404 Error</title>
+  <meta name="description" content="Requested system endpoint could not be resolved.">
+
+  <!-- Inline Vector SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='40' fill='%2332E0C4'/%3E%3Ccircle cx='50' cy='50' r='20' stroke='%23042324' stroke-width='4' fill='none'/%3E%3C/svg%3E">
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <style>
+    .error-layout {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      padding: var(--space-4);
+    }
+    
+    .error-container {
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .error-vector {
+      width: 140px;
+      height: 140px;
+      color: var(--text-subtle);
+      margin-bottom: var(--space-2);
+      animation: pulse-border 4s infinite alternate var(--ease-in-out-quad);
+    }
+    
+    .error-code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .error-title-main {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    
+    .error-desc-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    .error-actions {
+      margin-top: var(--space-2);
+    }
+    
+    @keyframes pulse-border {
+      0% { transform: scale(0.98); opacity: 0.7; }
+      100% { transform: scale(1.02); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="is-loaded">
+
+  <!-- Background Layering -->
+  <canvas id="particles-canvas" aria-hidden="true"></canvas>
+  <div class="vignette-overlay" aria-hidden="true"></div>
+  <div class="noise-overlay" aria-hidden="true"></div>
+  <div class="radial-glow-1" aria-hidden="true"></div>
+  <div class="radial-glow-2" aria-hidden="true"></div>
+
+  <!-- Custom Cursor -->
+  <div class="custom-cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+  <div class="custom-cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+
+  <main class="error-layout">
+    <div class="error-container">
+      
+      <!-- Minimal vector artwork representing structural search target -->
+      <svg viewBox="0 0 100 100" class="error-vector" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="0.5" stroke-dasharray="2, 2" fill="none"/>
+        <circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="0.75" fill="none"/>
+        <line x1="50" y1="2" x2="50" y2="98" stroke="currentColor" stroke-width="0.5"/>
+        <line x1="2" y1="50" x2="98" y2="50" stroke="currentColor" stroke-width="0.5"/>
+        <rect x="42" y="42" width="16" height="16" stroke="var(--accent-cyan)" stroke-width="1" fill="none"/>
+        <path d="M 40 40 L 44 40 M 40 40 L 40 44" stroke="currentColor" stroke-width="1"/>
+        <path d="M 60 40 L 56 40 M 60 40 L 60 44" stroke="currentColor" stroke-width="1"/>
+        <path d="M 40 60 L 44 60 M 40 60 L 40 56" stroke="currentColor" stroke-width="1"/>
+        <path d="M 60 60 L 56 60 M 60 60 L 60 56" stroke="currentColor" stroke-width="1"/>
+      </svg>
+
+      <span class="error-code">STATUS // 404 // ENDPOINT_UNRESOLVED</span>
+      <h1 class="error-title-main">Requested system path could not be resolved.</h1>
+      <p class="error-desc-text">
+        The requested address was either modified, relocated, or did not exist in the routing table schemas.
+      </p>
+      
+      <div class="error-actions">
+        <a href="index.html" class="btn btn-primary btn-magnetic">
+          <span>Return to Core System</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 8H2.5M2.5 8L6.5 4M2.5 8L6.5 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      
+    </div>
+  </main>
+
+  <!-- Core JavaScript File (reused for cursor and particles) -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
