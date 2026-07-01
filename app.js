@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initContactForm();
   initScrollIndicatorDimmer();
   initActiveNavTracker();
-  initTabTitleSwitcher();
   initConsoleSignature();
   initKeyboardNavigation();
 });
@@ -578,27 +577,6 @@ function initActiveNavTracker() {
 
   sections.forEach(sec => {
     activeObserver.observe(sec);
-  });
-}
-
-/* ==========================================================================
-   12. TAB VISIBILITY TITLE SWAPPER
-   ========================================================================== */
-function initTabTitleSwitcher() {
-  const originalTitle = document.title;
-  
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      document.title = `[PAUSED] ${originalTitle}`;
-    } else {
-      document.title = `[ACTIVE] ${originalTitle}`;
-      // Fade back to original title after 2.5s
-      setTimeout(() => {
-        if (!document.hidden) {
-          document.title = originalTitle;
-        }
-      }, 2500);
-    }
   });
 }
 
