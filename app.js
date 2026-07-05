@@ -57,27 +57,27 @@ function initParticles() {
     mouse.active = false;
   });
 
-  // Calculate dynamic particle count based on window size (increased density for better visibility)
+  // Calculate dynamic particle count based on window size (25–50 on desktop, fewer on mobile)
   function getParticleCount() {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    let count = Math.floor((width * height) / 18000);
-    
+    let count = Math.floor((width * height) / 36000);
+
     if (width < 768) {
-      count = Math.min(count, 40); // Mobile / Small Screens
+      count = Math.min(count, 18); // Mobile / Small Screens
     } else if (width < 1200) {
-      count = Math.min(count, 75); // Tablets / Medium Laptops
+      count = Math.min(count, 32); // Tablets / Medium Laptops
     } else {
-      count = Math.min(count, 120); // Large Monitors
+      count = Math.min(count, 48); // Large Monitors (around 25–50 particles)
     }
-    return Math.max(count, 20);
+    return Math.max(count, 10);
   }
 
-  // High-contrast visible theme colors (Bright Off White, Ice Cyan, Neon Teal)
+  // Existing teal/cyan accent colors from the design system
   const colors = [
-    'rgba(245, 247, 248, ',   // Bright Off White
-    'rgba(173, 244, 235, ',   // Bright Ice Cyan
-    'rgba(82, 243, 219, '     // Bright Neon Teal
+    'rgba(50, 224, 196, ',   // Accent Cyan (#32E0C4)
+    'rgba(0, 173, 181, ',    // Accent Teal (#00adb5)
+    'rgba(173, 244, 235, '   // Brightened Ice Cyan (derived from accent gradient)
   ];
 
   class Particle {
@@ -88,42 +88,42 @@ function initParticles() {
     init(randomizePosition = false) {
       this.x = Math.random() * canvas.width;
       this.y = randomizePosition ? Math.random() * canvas.height : canvas.height + 10;
-      
+
       const roll = Math.random();
       if (roll < 0.6) {
         // Far Layer (60% - Small, slow)
-        this.size = Math.random() * 0.4 + 1.2; // 1.2px to 1.6px
-        this.baseSpeed = Math.random() * 0.08 + 0.12; // Clearly visible movement
+        this.size = Math.random() * 0.5 + 2.0; // 2.0px to 2.5px
+        this.baseSpeed = Math.random() * 0.08 + 0.12; // Visible gentle drift
         this.layer = 1;
         this.glow = 0;
       } else if (roll < 0.9) {
         // Middle Layer (30% - Medium, medium speed)
-        this.size = Math.random() * 0.5 + 1.8; // 1.8px to 2.3px
+        this.size = Math.random() * 0.5 + 2.5; // 2.5px to 3.0px
         this.baseSpeed = Math.random() * 0.12 + 0.22;
         this.layer = 2;
         this.glow = 1;
       } else {
         // Close Layer (10% - Large, faster)
-        this.size = Math.random() * 0.6 + 2.4; // 2.4px to 3.0px max (kept small and elegant)
+        this.size = Math.random() * 0.8 + 3.2; // 3.2px to 4.0px (strictly within 2px–4px)
         this.baseSpeed = Math.random() * 0.18 + 0.38;
         this.layer = 3;
         this.glow = 2;
       }
 
-      // High visibility opacity (55% to 85%) so particles are visible without focusing
-      this.baseOpacity = Math.random() * 0.3 + 0.55;
+      // High visibility opacity (55% to 80%) so particles are visible without focusing
+      this.baseOpacity = Math.random() * 0.25 + 0.55;
       this.opacity = this.baseOpacity;
-      
+
       // Floating direction using independent slow angles (produces curving paths)
       this.angle = Math.random() * Math.PI * 2;
       this.angleSpeed = (Math.random() - 0.5) * 0.012; // Dynamic winding float
-      
+
       this.driftX = Math.cos(this.angle) * this.baseSpeed;
       this.driftY = Math.sin(this.angle) * this.baseSpeed;
-      
+
       this.vx = this.driftX;
       this.vy = this.driftY;
-      
+
       this.colorPrefix = colors[Math.floor(Math.random() * colors.length)];
     }
 
@@ -133,16 +133,16 @@ function initParticles() {
       this.driftX = Math.cos(this.angle) * this.baseSpeed;
       this.driftY = Math.sin(this.angle) * this.baseSpeed;
 
-      // Mouse repulsion calculations
+      // Mouse repulsion calculations (subtle push)
       if (mouse.active) {
         const dx = this.x - mouse.x;
         const dy = this.y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const repulseRadius = 140;
+        const repulseRadius = 120; // Subtle mouse radius
 
         if (dist < repulseRadius && dist > 0) {
           const force = (repulseRadius - dist) / repulseRadius;
-          const strength = 0.65; // Ambient gentle repulsion
+          const strength = 0.45; // Gentle ambient repulsion
           const targetVx = this.driftX + (dx / dist) * force * strength;
           const targetVy = this.driftY + (dy / dist) * force * strength;
 
@@ -191,7 +191,7 @@ function initParticles() {
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
+
     const count = getParticleCount();
     particles = [];
     for (let i = 0; i < count; i++) {
@@ -201,14 +201,14 @@ function initParticles() {
 
   function animate() {
     if (!isTabActive) return;
-    
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     for (let i = 0; i < particles.length; i++) {
       particles[i].update();
       particles[i].draw();
     }
-    
+
     animationFrameId = requestAnimationFrame(animate);
   }
 
@@ -223,7 +223,7 @@ function initParticles() {
   });
 
   window.addEventListener('resize', resizeCanvas);
-  
+
   resizeCanvas();
   animate();
 }
@@ -239,21 +239,21 @@ function initCustomCursor() {
 
   const dot = document.getElementById('cursor-dot');
   const ring = document.getElementById('cursor-ring');
-  
+
   if (!dot || !ring) return;
 
   document.body.classList.add('custom-cursor-active');
 
   let mouseX = window.innerWidth / 2;
   let mouseY = window.innerHeight / 2;
-  
+
   let dotX = mouseX;
   let dotY = mouseY;
   let ringX = mouseX;
   let ringY = mouseY;
 
-  const dotLerp = 0.35; 
-  const ringLerp = 0.12; 
+  const dotLerp = 0.35;
+  const ringLerp = 0.12;
 
   window.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
@@ -263,7 +263,7 @@ function initCustomCursor() {
   function updateCursor() {
     dotX += (mouseX - dotX) * dotLerp;
     dotY += (mouseY - dotY) * dotLerp;
-    
+
     ringX += (mouseX - ringX) * ringLerp;
     ringY += (mouseY - ringY) * ringLerp;
 
@@ -272,7 +272,7 @@ function initCustomCursor() {
 
     requestAnimationFrame(updateCursor);
   }
-  
+
   requestAnimationFrame(updateCursor);
 
   window.addEventListener('mousedown', () => {
@@ -286,11 +286,11 @@ function initCustomCursor() {
   // Attach hover styles
   function updateHoverListeners() {
     const hoverables = document.querySelectorAll('a, button, .logo-wrapper, .tech-box, .faq-trigger, .exp-header, .btn-case-study, select, input, textarea, [role="button"]');
-    
+
     hoverables.forEach(item => {
       item.removeEventListener('mouseenter', addCursorHover);
       item.removeEventListener('mouseleave', removeCursorHover);
-      
+
       item.addEventListener('mouseenter', addCursorHover);
       item.addEventListener('mouseleave', removeCursorHover);
     });
@@ -383,10 +383,10 @@ function initScrollRevealStaggered() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const target = entry.target;
-        
+
         // Find all revealable children inside this section
         const items = target.querySelectorAll('.reveal-item');
-        
+
         if (items.length > 0) {
           items.forEach((item, index) => {
             // Dynamically calculate transition delays to create elegant cascades
@@ -394,12 +394,12 @@ function initScrollRevealStaggered() {
             item.classList.add('revealed');
           });
         }
-        
+
         // Also reveal parent container if needed
         if (target.classList.contains('reveal-item')) {
           target.classList.add('revealed');
         }
-        
+
         observer.unobserve(target);
       }
     });
@@ -423,17 +423,17 @@ function initMagneticButtons() {
       const rect = button.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      
+
       const offsetX = e.clientX - centerX;
       const offsetY = e.clientY - centerY;
-      
-      const pullFactor = 0.22; 
-      
+
+      const pullFactor = 0.22;
+
       const moveX = offsetX * pullFactor;
       const moveY = offsetY * pullFactor;
 
       button.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-      button.style.transition = 'none'; 
+      button.style.transition = 'none';
     });
 
     button.addEventListener('mouseleave', () => {
@@ -452,21 +452,21 @@ function initAccordions() {
   expPanels.forEach(panel => {
     const header = panel.querySelector('.exp-header');
     const content = panel.querySelector('.exp-content');
-    
+
     if (panel.classList.contains('active') && content) {
       content.style.maxHeight = content.scrollHeight + 'px';
     }
-    
+
     header.addEventListener('click', () => {
       const isActive = panel.classList.contains('active');
-      
+
       expPanels.forEach(p => {
         p.classList.remove('active');
         p.querySelector('.exp-header').setAttribute('aria-expanded', 'false');
         const c = p.querySelector('.exp-content');
         if (c) c.style.maxHeight = '0';
       });
-      
+
       if (!isActive) {
         panel.classList.add('active');
         header.setAttribute('aria-expanded', 'true');
@@ -480,17 +480,17 @@ function initAccordions() {
   faqItems.forEach(item => {
     const trigger = item.querySelector('.faq-trigger');
     const content = item.querySelector('.faq-content');
-    
+
     trigger.addEventListener('click', () => {
       const isActive = item.classList.contains('active');
-      
+
       faqItems.forEach(i => {
         i.classList.remove('active');
         i.querySelector('.faq-trigger').setAttribute('aria-expanded', 'false');
         const c = i.querySelector('.faq-content');
         if (c) c.style.maxHeight = '0';
       });
-      
+
       if (!isActive) {
         item.classList.add('active');
         trigger.setAttribute('aria-expanded', 'true');
@@ -504,7 +504,7 @@ function initAccordions() {
   caseAccs.forEach(acc => {
     const btn = acc.querySelector('.btn-case-study');
     const content = acc.querySelector('.case-study-content');
-    
+
     btn.addEventListener('click', () => {
       const isExpanded = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', !isExpanded);
@@ -521,23 +521,23 @@ function initTimelineScroll() {
   const container = document.querySelector('.process-timeline-container');
   const fill = document.getElementById('timeline-fill');
   const steps = document.querySelectorAll('.timeline-step');
-  
+
   if (!container || !fill || steps.length === 0) return;
 
   function updateTimelineProgress() {
     const containerRect = container.getBoundingClientRect();
-    const triggerOffset = window.innerHeight * 0.65; 
-    
+    const triggerOffset = window.innerHeight * 0.65;
+
     const startScroll = containerRect.top - triggerOffset;
-    const totalScroll = containerRect.height - 120; 
-    
+    const totalScroll = containerRect.height - 120;
+
     let progress = 0;
     if (startScroll < 0) {
       progress = Math.min(100, Math.max(0, (-startScroll / totalScroll) * 100));
     }
-    
+
     fill.style.height = `${progress}%`;
-    
+
     steps.forEach(step => {
       const stepRect = step.getBoundingClientRect();
       if (stepRect.top < triggerOffset) {
@@ -559,7 +559,7 @@ function initTimelineScroll() {
 function initContactForm() {
   const form = document.getElementById('portfolio-contact-form');
   const successMsg = document.getElementById('form-status-success');
-  
+
   if (!form || !successMsg) return;
 
   function validateEmail(email) {
@@ -619,7 +619,7 @@ function initContactForm() {
 
       successMsg.classList.add('success');
       form.reset();
-      
+
       setTimeout(() => {
         successMsg.classList.remove('success');
       }, 7000);
@@ -667,7 +667,7 @@ function initActiveNavTracker() {
       if (entry.isIntersecting) {
         const id = entry.target.getAttribute('id');
         const expectedHref = id === 'home' ? '/' : `/${id}`;
-        
+
         navLinks.forEach(link => {
           if (link.getAttribute('href') === expectedHref) {
             link.classList.add('active');
@@ -711,9 +711,9 @@ function initKeyboardNavigation() {
     // Prevent shortcut firing inside form inputs
     const activeTagName = document.activeElement ? document.activeElement.tagName : '';
     if (
-      activeTagName === 'INPUT' || 
-      activeTagName === 'TEXTAREA' || 
-      activeTagName === 'SELECT' || 
+      activeTagName === 'INPUT' ||
+      activeTagName === 'TEXTAREA' ||
+      activeTagName === 'SELECT' ||
       (document.activeElement && document.activeElement.getAttribute('contenteditable') === 'true')
     ) {
       return;
@@ -752,7 +752,7 @@ function initKeyboardNavigation() {
           targetElement.scrollIntoView({ behavior: 'smooth' });
           const targetPath = targetId === 'home' ? '/' : `/${targetId}`;
           history.pushState(null, null, targetPath);
-          
+
           // Force highlight active nav link
           const navLinks = document.querySelectorAll('.nav-link');
           navLinks.forEach(link => {
@@ -762,7 +762,7 @@ function initKeyboardNavigation() {
               link.classList.remove('active');
             }
           });
-          
+
           // Close dialog if open
           if (dialog.hasAttribute('open')) {
             dialog.close();
@@ -795,9 +795,9 @@ function initKeyboardNavigation() {
   dialog.addEventListener('click', (e) => {
     const rect = dialog.getBoundingClientRect();
     const isInDialog = (
-      rect.top <= e.clientY && 
+      rect.top <= e.clientY &&
       e.clientY <= rect.top + rect.height &&
-      rect.left <= e.clientX && 
+      rect.left <= e.clientX &&
       e.clientX <= rect.left + rect.width
     );
     if (!isInDialog) {
@@ -833,7 +833,7 @@ function initRouter() {
   // Scroll to section based on pathname
   function handleRouting(path, isInitial = false) {
     const targetId = getTargetId(path);
-    
+
     if (targetId) {
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
@@ -845,7 +845,7 @@ function initRouter() {
         } else {
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }
-        
+
         // Update active class on nav links
         const navLinks = document.querySelectorAll('.nav-link');
         navLinks.forEach(link => {
@@ -872,7 +872,7 @@ function initRouter() {
     if (!link) return;
 
     const href = link.getAttribute('href');
-    
+
     if (href === '#main-content') {
       e.preventDefault();
       const mainContent = document.getElementById('main-content');
@@ -888,15 +888,15 @@ function initRouter() {
     if (href && (href.startsWith('/') || href.startsWith(window.location.origin))) {
       const url = new URL(link.href);
       const path = url.pathname;
-      
+
       const targetId = getTargetId(path);
       if (targetId) {
         e.preventDefault();
-        
+
         if (window.location.pathname !== path) {
           history.pushState(null, null, path);
         }
-        
+
         handleRouting(path);
       }
     }
