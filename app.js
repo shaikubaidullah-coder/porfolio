@@ -32,56 +32,158 @@ function initParticles() {
   const canvas = document.getElementById('particles-canvas');
   if (!canvas) return;
 
-  // Performance bypass: skip on mobile or reduced-motion
-  if (window.innerWidth < 768 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    canvas.style.display = 'none';
-    return;
-  }
-
   const ctx = canvas.getContext('2d');
   let particles = [];
   let animationFrameId;
   let isTabActive = true;
 
-  // Configuration
-  const particleCount = Math.min(45, Math.floor((window.innerWidth * window.innerHeight) / 28000));
+  // Mouse tracking parameters
+  const mouse = {
+    x: -9999,
+    y: -9999,
+    active: false
+  };
+
+  // Scope mouse event listeners to window
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  });
+
+  window.addEventListener('mouseleave', () => {
+    mouse.x = -9999;
+    mouse.y = -9999;
+    mouse.active = false;
+  });
+
+  // Calculate dynamic particle count based on window size (increased density for better visibility)
+  function getParticleCount() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    let count = Math.floor((width * height) / 18000);
+    
+    if (width < 768) {
+      count = Math.min(count, 40); // Mobile / Small Screens
+    } else if (width < 1200) {
+      count = Math.min(count, 75); // Tablets / Medium Laptops
+    } else {
+      count = Math.min(count, 120); // Large Monitors
+    }
+    return Math.max(count, 20);
+  }
+
+  // High-contrast visible theme colors (Bright Off White, Ice Cyan, Neon Teal)
   const colors = [
-    'rgba(50, 224, 196, 0.04)',  // Accent Teal (extremely faint)
-    'rgba(24, 77, 71, 0.06)',    // Muted Emerald
-    'rgba(245, 247, 248, 0.02)'  // Off White dust
+    'rgba(245, 247, 248, ',   // Bright Off White
+    'rgba(173, 244, 235, ',   // Bright Ice Cyan
+    'rgba(82, 243, 219, '     // Bright Neon Teal
   ];
 
   class Particle {
     constructor() {
-      this.reset();
-      this.y = Math.random() * canvas.height;
+      this.init(true);
     }
 
-    reset() {
+    init(randomizePosition = false) {
       this.x = Math.random() * canvas.width;
-      this.y = canvas.height + Math.random() * 20;
-      this.size = Math.random() * 1.8 + 0.4; // Tiny: 0.4px to 2.2px
-      this.speedX = (Math.random() - 0.5) * 0.04; // Extremely slow horizontal drift
-      this.speedY = -(Math.random() * 0.08 + 0.03); // Faint vertical ascent
-      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.y = randomizePosition ? Math.random() * canvas.height : canvas.height + 10;
+      
+      const roll = Math.random();
+      if (roll < 0.6) {
+        // Far Layer (60% - Small, slow)
+        this.size = Math.random() * 0.4 + 1.2; // 1.2px to 1.6px
+        this.baseSpeed = Math.random() * 0.08 + 0.12; // Clearly visible movement
+        this.layer = 1;
+        this.glow = 0;
+      } else if (roll < 0.9) {
+        // Middle Layer (30% - Medium, medium speed)
+        this.size = Math.random() * 0.5 + 1.8; // 1.8px to 2.3px
+        this.baseSpeed = Math.random() * 0.12 + 0.22;
+        this.layer = 2;
+        this.glow = 1;
+      } else {
+        // Close Layer (10% - Large, faster)
+        this.size = Math.random() * 0.6 + 2.4; // 2.4px to 3.0px max (kept small and elegant)
+        this.baseSpeed = Math.random() * 0.18 + 0.38;
+        this.layer = 3;
+        this.glow = 2;
+      }
+
+      // High visibility opacity (55% to 85%) so particles are visible without focusing
+      this.baseOpacity = Math.random() * 0.3 + 0.55;
+      this.opacity = this.baseOpacity;
+      
+      // Floating direction using independent slow angles (produces curving paths)
+      this.angle = Math.random() * Math.PI * 2;
+      this.angleSpeed = (Math.random() - 0.5) * 0.012; // Dynamic winding float
+      
+      this.driftX = Math.cos(this.angle) * this.baseSpeed;
+      this.driftY = Math.sin(this.angle) * this.baseSpeed;
+      
+      this.vx = this.driftX;
+      this.vy = this.driftY;
+      
+      this.colorPrefix = colors[Math.floor(Math.random() * colors.length)];
     }
 
     update() {
-      this.x += this.speedX;
-      this.y += this.speedY;
+      // Slow organic angle drift
+      this.angle += this.angleSpeed;
+      this.driftX = Math.cos(this.angle) * this.baseSpeed;
+      this.driftY = Math.sin(this.angle) * this.baseSpeed;
 
-      if (this.x < 0) this.x = canvas.width;
-      if (this.x > canvas.width) this.x = 0;
+      // Mouse repulsion calculations
+      if (mouse.active) {
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const repulseRadius = 140;
 
-      if (this.y < -20) {
-        this.reset();
+        if (dist < repulseRadius && dist > 0) {
+          const force = (repulseRadius - dist) / repulseRadius;
+          const strength = 0.65; // Ambient gentle repulsion
+          const targetVx = this.driftX + (dx / dist) * force * strength;
+          const targetVy = this.driftY + (dy / dist) * force * strength;
+
+          // Physics transition (lerp)
+          this.vx += (targetVx - this.vx) * 0.08;
+          this.vy += (targetVy - this.vy) * 0.08;
+        } else {
+          // Return to organic float speed
+          this.vx += (this.driftX - this.vx) * 0.05;
+          this.vy += (this.driftY - this.vy) * 0.05;
+        }
+      } else {
+        // Return to organic float speed
+        this.vx += (this.driftX - this.vx) * 0.05;
+        this.vy += (this.driftY - this.vy) * 0.05;
       }
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      // Bound check screen wrap
+      const margin = 10;
+      if (this.x < -margin) this.x = canvas.width + margin;
+      if (this.x > canvas.width + margin) this.x = -margin;
+      if (this.y < -margin) this.y = canvas.height + margin;
+      if (this.y > canvas.height + margin) this.y = -margin;
     }
 
     draw() {
+      // Concentric circles for glowing light layers
+      if (this.glow > 0) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * (this.glow === 1 ? 2.6 : 3.6), 0, Math.PI * 2);
+        ctx.fillStyle = `${this.colorPrefix}${this.opacity * (this.glow === 1 ? 0.25 : 0.3)})`;
+        ctx.fill();
+      }
+
+      // Solid inner core
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = `${this.colorPrefix}${this.opacity})`;
       ctx.fill();
     }
   }
@@ -90,8 +192,9 @@ function initParticles() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
+    const count = getParticleCount();
     particles = [];
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < count; i++) {
       particles.push(new Particle());
     }
   }
@@ -109,7 +212,6 @@ function initParticles() {
     animationFrameId = requestAnimationFrame(animate);
   }
 
-  // Tab Visibility API to save CPU cycles
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       isTabActive = false;

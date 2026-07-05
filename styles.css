@@ -4,7 +4,7 @@
 :root {
   /* Color Palette (Deep Forest Teal Theme) */
   --bg-primary: #042324;
-  --bg-alternate: #0B2B26;
+  --bg-alternate: rgba(11, 43, 38, 0.82);
   
   /* Brand Shades & Depth */
   --color-forest: #0D3A37;
